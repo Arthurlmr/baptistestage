@@ -1,0 +1,2215 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football Comparator Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2a2a2a;
+            --bg-card: rgba(45, 45, 45, 0.8);
+            --glass: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.5);
+            --accent-yellow: #E8F54A;
+            --accent-blue: #4A7BF5;
+            --accent-green: #4AF59A;
+            --accent-orange: #F5944A;
+            --better: #4AF59A;
+            --worse: #F54A4A;
+            --equal: #F5D44A;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* Subtle background gradient */
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(ellipse at 0% 0%, rgba(232, 245, 74, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 100% 100%, rgba(74, 123, 245, 0.05) 0%, transparent 50%),
+                var(--bg-primary);
+        }
+
+        /* Header */
+        header {
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-yellow), var(--accent-green));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #000;
+        }
+
+        .welcome-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .welcome-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .header-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+        }
+
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.05);
+        }
+
+        /* Page Title */
+        .page-title {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 10px 30px 30px;
+        }
+
+        .page-title h1 {
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 300;
+            letter-spacing: -0.5px;
+        }
+
+        .page-title h1 strong {
+            font-weight: 800;
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            max-width: 1600px;
+            margin: 0 auto 30px;
+            padding: 0 30px;
+        }
+
+        .filter-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-select {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            padding: 12px 24px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            padding-right: 40px;
+            min-width: 200px;
+        }
+
+        .filter-select:hover, .filter-select:focus {
+            background-color: rgba(255, 255, 255, 0.12);
+            outline: none;
+        }
+
+        .filter-select option {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 30px 50px;
+        }
+
+        /* Comparison Grid */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        @media (max-width: 1200px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        /* Player Card */
+        .player-card {
+            border-radius: 30px;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.4s ease;
+        }
+
+        .player-card.player1 {
+            background: linear-gradient(180deg, #E8F54A 0%, #C4D43E 100%);
+        }
+
+        .player-card.player2 {
+            background: linear-gradient(180deg, #4A7BF5 0%, #3A5FC4 100%);
+        }
+
+        .player-card.empty {
+            background: var(--glass);
+            border: 2px dashed var(--glass-border);
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Search Box */
+        .search-container {
+            padding: 20px;
+            position: relative;
+        }
+
+        .player-card.player1 .search-container {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .player-card.player2 .search-container {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .player-card.empty .search-container {
+            background: transparent;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 20px;
+            padding-left: 50px;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .player-card.player1 .search-input {
+            background: rgba(255, 255, 255, 0.9);
+            color: #1a1a1a;
+        }
+
+        .player-card.player2 .search-input {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .player-card.player2 .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .player-card.empty .search-input {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid var(--glass-border);
+        }
+
+        .player-card.empty .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 35px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.1rem;
+            opacity: 0.6;
+        }
+
+        .player-card.player1 .search-icon {
+            color: #1a1a1a;
+        }
+
+        .player-card.player2 .search-icon,
+        .player-card.empty .search-icon {
+            color: white;
+        }
+
+        .search-results {
+            position: absolute;
+            top: calc(100% - 5px);
+            left: 20px;
+            right: 20px;
+            background: #2a2a2a;
+            border-radius: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .search-results.active {
+            display: block;
+        }
+
+        .search-result-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .search-result-item img {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        .search-result-info {
+            flex: 1;
+        }
+
+        .search-result-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .search-result-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Player Content */
+        .player-content {
+            padding: 25px;
+        }
+
+        .player-card.player1 .player-content {
+            color: #1a1a1a;
+        }
+
+        .player-card.player2 .player-content {
+            color: white;
+        }
+
+        /* Player Header */
+        .player-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .player-photo-wrapper {
+            position: relative;
+        }
+
+        .player-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 20px;
+            object-fit: cover;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .player-card.player1 .player-photo {
+            border-color: rgba(0, 0, 0, 0.15);
+        }
+
+        .player-flag {
+            position: absolute;
+            bottom: -8px;
+            left: -8px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .player-club-badge {
+            position: absolute;
+            bottom: -8px;
+            right: -8px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .player-info {
+            flex: 1;
+        }
+
+        .player-name {
+            font-size: 1.6rem;
+            font-weight: 300;
+            margin-bottom: 5px;
+            line-height: 1.2;
+        }
+
+        .player-name strong {
+            font-weight: 800;
+        }
+
+        .player-position-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .player-card.player1 .player-position-badge {
+            background: rgba(0, 0, 0, 0.15);
+            color: #1a1a1a;
+        }
+
+        .player-card.player2 .player-position-badge {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* Index Score */
+        .index-score {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .index-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+
+        .index-value {
+            font-size: 2.5rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        /* Info Sections */
+        .info-section {
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+            opacity: 0.7;
+        }
+
+        /* Glass Card */
+        .glass-card {
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 15px;
+        }
+
+        .player-card.player1 .glass-card {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .player-card.player2 .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .info-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.6;
+        }
+
+        .info-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .stat-item {
+            padding: 15px;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .player-card.player1 .stat-item {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .player-card.player2 .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-item.better::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--better);
+        }
+
+        .stat-item.worse::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--worse);
+        }
+
+        .stat-item.equal::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--equal);
+        }
+
+        .stat-icon {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.7;
+        }
+
+        /* Clubs List */
+        .clubs-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .club-tag {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .player-card.player1 .club-tag {
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .player-card.player2 .club-tag {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Ballon d'Or */
+        .ballon-dor-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .ballon-year {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #1a1a1a;
+        }
+
+        /* VS Section */
+        .vs-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .vs-section {
+                order: -1;
+                padding: 20px;
+            }
+        }
+
+        .vs-badge {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--glass);
+            border: 2px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        /* Empty State */
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--glass);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .empty-text {
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+
+        /* Radar Section */
+        .radar-section {
+            margin-top: 50px;
+        }
+
+        .radar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .radar-title {
+            font-size: 1.5rem;
+            font-weight: 300;
+        }
+
+        .radar-title strong {
+            font-weight: 800;
+        }
+
+        .radar-legend {
+            display: flex;
+            gap: 25px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.player1 {
+            background: var(--accent-yellow);
+        }
+
+        .legend-dot.player2 {
+            background: var(--accent-blue);
+        }
+
+        .radar-container {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 30px;
+            display: none;
+        }
+
+        .radar-container.active {
+            display: block;
+        }
+
+        /* Stats Table */
+        .stats-comparison-table {
+            width: 100%;
+            margin-bottom: 30px;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+        }
+
+        .stats-comparison-table th {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            padding: 10px 12px;
+            text-align: center;
+        }
+
+        .stats-comparison-table th:first-child {
+            text-align: left;
+        }
+
+        .stats-comparison-table td {
+            padding: 12px;
+            text-align: center;
+            font-weight: 600;
+            border-radius: 10px;
+        }
+
+        .stats-comparison-table td:first-child {
+            text-align: left;
+            border-radius: 10px 0 0 10px;
+        }
+
+        .stats-comparison-table td:last-child {
+            border-radius: 0 10px 10px 0;
+        }
+
+        .stats-comparison-table .player1-row td {
+            background: rgba(232, 245, 74, 0.15);
+            color: var(--accent-yellow);
+        }
+
+        .stats-comparison-table .player2-row td {
+            background: rgba(74, 123, 245, 0.15);
+            color: var(--accent-blue);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            max-width: 550px;
+            margin: 0 auto;
+        }
+
+        /* Beeswarm / Scatter Section */
+        .analysis-section {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .analysis-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        .analysis-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+
+        .analysis-chart {
+            height: 120px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .types-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--accent-green);
+            border-radius: 20px;
+            color: #1a1a1a;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                padding: 15px 20px;
+            }
+
+            .page-title {
+                padding: 10px 20px 20px;
+            }
+
+            .filter-bar, .main-container {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
+            .player-photo {
+                width: 90px;
+                height: 90px;
+            }
+
+            .player-name {
+                font-size: 1.3rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .player-card {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .player-card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .radar-container {
+            animation: fadeIn 0.5s ease forwards;
+            animation-delay: 0.2s;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-left">
+            <div class="avatar">⚽</div>
+            <div>
+                <div class="welcome-text">Welcome back</div>
+                <div class="welcome-name">Football Fan!</div>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="header-btn">🔍</button>
+            <button class="header-btn">⚙️</button>
+        </div>
+    </header>
+
+    <!-- Page Title -->
+    <div class="page-title">
+        <h1>Find the best <strong>comparisons.</strong></h1>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="filter-container">
+            <span class="filter-label">
+                <span>🏆</span>
+                Championnat
+            </span>
+            <select id="league-filter" class="filter-select">
+                <option value="">Tous les championnats</option>
+                <option value="ligue1">Ligue 1 (France)</option>
+                <option value="laliga">La Liga (Espagne)</option>
+                <option value="premier">Premier League (Angleterre)</option>
+                <option value="seriea">Serie A (Italie)</option>
+                <option value="bundesliga">Bundesliga (Allemagne)</option>
+                <option value="liganos">Liga Nos (Portugal)</option>
+                <option value="eredivisie">Eredivisie (Pays-Bas)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Comparison Grid -->
+        <div class="comparison-grid">
+            <!-- Player 1 -->
+            <div class="player-card player1 empty" id="card1">
+                <div class="search-container">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" id="search1" placeholder="Rechercher un joueur...">
+                    <div class="search-results" id="results1"></div>
+                </div>
+                <div id="player1-content">
+                    <div class="empty-state">
+                        <div class="empty-icon">👤</div>
+                        <p class="empty-text">Sélectionnez le premier joueur</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VS -->
+            <div class="vs-section">
+                <div class="vs-badge">VS</div>
+            </div>
+
+            <!-- Player 2 -->
+            <div class="player-card player2 empty" id="card2">
+                <div class="search-container">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" id="search2" placeholder="Rechercher un joueur...">
+                    <div class="search-results" id="results2"></div>
+                </div>
+                <div id="player2-content">
+                    <div class="empty-state">
+                        <div class="empty-icon">👤</div>
+                        <p class="empty-text">Sélectionnez le deuxième joueur</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Radar Section -->
+        <div class="radar-section">
+            <div class="radar-header">
+                <h2 class="radar-title">Player <strong>Analysis</strong></h2>
+                <div class="radar-legend">
+                    <div class="legend-item">
+                        <div class="legend-dot player1"></div>
+                        <span id="legend1">Joueur 1</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot player2"></div>
+                        <span id="legend2">Joueur 2</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="radar-container" id="radar-container">
+                <table class="stats-comparison-table">
+                    <thead>
+                        <tr id="table-headers">
+                            <th>Joueur</th>
+                            <th>Stat 1</th>
+                            <th>Stat 2</th>
+                            <th>Stat 3</th>
+                            <th>Stat 4</th>
+                            <th>Stat 5</th>
+                            <th>Stat 6</th>
+                            <th>Stat 7</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+
+                <div class="chart-container">
+                    <canvas id="radarChart"></canvas>
+                </div>
+
+                <div class="analysis-section">
+                    <div class="analysis-card">
+                        <div class="analysis-title">Beeswarm - Passing</div>
+                        <div class="analysis-chart">
+                            <canvas id="beeswarmChart"></canvas>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 10px;">
+                            <span>Low</span>
+                            <span>High</span>
+                        </div>
+                    </div>
+                    <div class="analysis-card">
+                        <div class="analysis-title">Scatter plot - Performance</div>
+                        <div class="analysis-chart">
+                            <canvas id="scatterChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Players Database
+        const playersDatabase = [
+            // GARDIENS
+            {
+                id: 1,
+                firstName: "Thibaut",
+                lastName: "Courtois",
+                birthDate: "1992-05-11",
+                nationality: "Belgique",
+                nationalityFlag: "🇧🇪",
+                position: "Gardien",
+                currentClub: "Real Madrid",
+                clubShort: "RMA",
+                league: "laliga",
+                clubs: ["Genk", "Atlético Madrid", "Chelsea", "Real Madrid"],
+                ballonDor: 0,
+                ballonDorYears: [],
+                trophies: 18,
+                goals: 0,
+                assists: 0,
+                tackles: 2,
+                ownGoals: 0,
+                saves: 892,
+                index: 87,
+                photo: "https://img.a.transfermarkt.technology/portrait/header/108390-1663921803.jpg",
+                radarStats: { saves: 80, psxg: 69.3, passes: 56.7, longPass: 1.3, shortPass: 87.3, aerials: 20, interceptions: 36.7 }
+            },
+            {
+                id: 2,
+                firstName: "David",
+                lastName: "Raya",
+                birthDate: "1995-09-15",
+                nationality: "Espagne",
+                nationalityFlag: "🇪🇸",
+                position: "Gardien",
+                currentClub: "Arsenal",
+                clubShort: "ARS",
+                league: "premier",
+                clubs: ["Blackburn", "Brentford", "Arsenal"],
+                ballonDor: 0,
+                ballonDorYears: [],
+                trophies: 3,
+                goals: 0,
+                assists: 0,
+                tackles: 5,
+                ownGoals: 0,
+                saves: 456,
+                index: 84,
+                photo: "https://img.a.transfermarkt.technology/portrait/header/288003-1694413645.jpg",
+                radarStats: { saves: 65.3, psxg: 63.3, passes: 64, longPass: 54.7, shortPass: 22, aerials: 49.3, interceptions: 69.3 }
+            },
+            {
+                id: 3,
+                firstName: "Gianluigi",
+                lastName: "Donnarumma",
+                birthDate: "1999-02-25",
+                nationality: "Italie",
+                nationalityFlag: "🇮🇹",
+                position: "Gardien",
+                currentClub: "PSG",
+                clubShort: "PSG",
+                league: "ligue1",
+                clubs: ["AC Milan", "PSG"],
+                ballonDor: 0,
+                ballonDorYears: [],
+                trophies: 9,
+                goals: 0,
+                assists: 0,
+                tackles: 3,
+                ownGoals: 0,
+                saves: 678,
+                index: 85,
+                photo: "https://img.a.transfermarkt.technology/portrait/header/315858-1709630051.jpg",
+                radarStats: { saves: 72, psxg: 58, passes: 61, longPass: 45, shortPass: 68, aerials: 35, interceptions: 42 }
+            },
+            {
+                id: 4,
+                firstName: "Marc-André",
+                lastName: "ter Stegen",
+                birthDate: "1992-04-30",
+                nationality: "Allemagne",
+                nationalityFlag: "🇩🇪",
+                position: "Gardien",
+                currentClub: "FC Barcelone",
+                clubShort: "FCB",
+                league: "laliga",
+                clubs: ["Borussia M'gladbach", "FC Barcelone"],
+                ballonDor: 0,
+                ballonDorYears: [],
+                trophies: 22,
+                goals: 0,
+                assists: 0,
+                tackles: 4,
+                ownGoals: 0,
+                saves: 745,
+                index: 86,
+                photo: "https://img.a.transfermarkt.technology/portrait/header/74857-1696425354.jpg",
+                radarStats: { saves: 75, psxg: 71, passes: 82, longPass: 62, shortPass: 91, aerials: 28, interceptions: 31 }
+            },
+            // DÉFENSEURS
+            {
+                id: 5,
+                firstName: "Virgil",
+                lastName: "van Dijk",
+                birthDate: "1991-07-08",
+                nationality: "Pays-Bas",
+                nationalityFlag: "🇳🇱",
+                position: "Défenseur",
+                currentClub: "Liverpool",
+                clubShort: "LIV",
+                league: "premier",
+                clubs: ["Groningen", "Celtic", "Southampton", "Liverpool"],
+                ballonDor: 0,
+                ballonDorYears: [],
+                trophies: 12,
+                goals: 0,
+                assists: 12,
+                tackles: 456,
+                ownGoals: 2,
+                saves: 0,
+                index: 90,
+                photo: "https://img.a.transfermarkt.technology/portrait/header/139208-1696417987.jpg",
+                radarStats: { tackles: 78, aerials: 95, passes: 82, longPass: 68, shortPass: 85, interceptions: 71, blocks: 65 }
+            },
+            {
+                id: 6,
+                firstName: "Rúben",
+                lastName: "Dias",
+                birthDate: "1997-05-14",
+                nationality: "Portugal",
+                nationalityFlag: "🇵🇹",
+                position: "Défenseur",
+                currentClub: "Manchester City",
+                clubShort: "MCI",
+                league: "premier",
+                clubs: ["Benfica", "Manchester City"],
+                ballonDor: 0,
+                ballonDorYears: [],
+                trophies: 14,
+                goals: 0,
+                assists: 8,
+                tackles: 389,
+                ownGoals: 1,
+                saves: 0,
+                index: 88,
+                photo: "https://img.a.transfermarkt.technology/portrait/header/258004-1688986546730.jpg",
+                radarStats: { tackles: 82, aerials: 88, passes: 79, longPass: 72, shortPass: 88, interceptions: 76, blocks: 71 }
+            },
+            {
+                id: 7,
+                firstName: "Antonio",
+                lastName: "Rüdiger",
+                birthDate: "1993-03-03",
+                nationality: "Allemagne",
+                nationalityFlag: "🇩🇪",
+                position: "Défenseur",
+                currentClub: "Real Madrid",
+                clubShort: "RMA",
+                league: "laliga",
+                clubs: ["Stuttgart", "AS Roma", "Chelsea", "Real Madrid"],
+                ballonDor: 0,
+                ballonDorYears: [],
+                trophies: 16,
+                goals: 0,
+                assists: 6,
+                tackles: 412,
+                ownGoals: 3,
+                saves: 0,
+                index: 86,
+                photo: "https://img.a.transfermarkt.technology/portrait/header/86202-1663926048.jpg",
+                radarStats: { tackles: 75, aerials: 82, passes: 74, longPass: 58, shortPass: 81, interceptions: 68, blocks: 62 }
+            },
+            // MILIEUX
+            {
+                id: 8,
+                firstName: "Kevin",
+                lastName: "De Bruyne",
+                birthDate: "1991-06-28",
+                nationality: "Belgique",
+                nationalityFlag: "🇧🇪",
+                position: "Milieu",
+                currentClub: "Manchester City",
+                clubShort: "MCI",
+                league: "premier",
+                clubs: ["Genk", "Chelsea", "Werder Bremen", "Wolfsburg", "Manchester City"],
+                ballonDor: 0,
+                ballonDorYears: [],
+                trophies: 17,
+                goals: 102,
+                assists: 178,
+                tackles: 234,
+                ownGoals: 1,
+                saves: 0,
+                index: 91,
+                photo: "https://img.a.transfermarkt.technology/portrait/header/88755-1694590254.jpg",
+                radarStats: { goals: 68, assists: 95, passes: 92, longPass: 88, shortPass: 94, tackles: 45, dribbles: 72 }
+            },
+            {
+                id: 9,
+                firstName: "Luka",
+                lastName: "Modrić",
+                birthDate: "1985-09-09",
+                nationality: "Croatie",
+                nationalityFlag: "🇭🇷",
+                position: "Milieu",
+                currentClub: "Real Madrid",
+                clubShort: "RMA",
+                league: "laliga",
+                clubs: ["Dinamo Zagreb", "Tottenham", "Real Madrid"],
+                ballonDor: 1,
+                ballonDorYears: [2018],
+                trophies: 28,
+                goals: 78,
+                assists: 142,
+                tackles: 298,
+                ownGoals: 0,
+                saves: 0,
+                index: 88,
+                photo: "https://img.a.transfermarkt.technology/portrait/header/27992-1696417381.jpg",
+                radarStats: { goals: 52, assists: 82, passes: 95, longPass: 85, shortPass: 97, tackles: 58, dribbles: 78 }
+            },
+            {
+                id: 10,
+                firstName: "Jude",
+                lastName: "Bellingham",
+                birthDate: "2003-06-29",
+                nationality: "Angleterre",
+                nationalityFlag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+                position: "Milieu",
+                currentClub: "Real Madrid",
+                clubShort: "RMA",
+                league: "laliga",
+                clubs: ["Birmingham City", "Borussia Dortmund", "Real Madrid"],
+                ballonDor: 0,
+                ballonDorYears: [],
+                trophies: 6,
+                goals: 58,
+                assists: 42,
+                tackles: 167,
+                ownGoals: 0,
+                saves: 0,
+                index: 89,
+                photo: "https://img.a.transfermarkt.technology/portrait/header/581678-1694590620.jpg",
+                radarStats: { goals: 78, assists: 68, passes: 85, longPass: 72, shortPass: 88, tackles: 71, dribbles: 82 }
+            },
+            // ATTAQUANTS
+            {
+                id: 11,
+                firstName: "Lionel",
+                lastName: "Messi",
+                birthDate: "1987-06-24",
+                nationality: "Argentine",
+                nationalityFlag: "🇦🇷",
+                position: "Attaquant",
+                currentClub: "Inter Miami",
+                clubShort: "MIA",
+                league: "",
+                clubs: ["FC Barcelone", "PSG", "Inter Miami"],
+                ballonDor: 8,
+                ballonDorYears: [2009, 2010, 2011, 2012, 2015, 2019, 2021, 2023],
+                trophies: 45,
+                goals: 838,
+                assists: 374,
+                tackles: 89,
+                ownGoals: 1,
+                saves: 0,
+                index: 99,
+                photo: "https://img.a.transfermarkt.technology/portrait/header/28003-1694590254.jpg",
+                radarStats: { goals: 99, assists: 98, passes: 92, longPass: 78, shortPass: 96, dribbles: 99, shots: 97 }
+            },
+            {
+                id: 12,
+                firstName: "Cristiano",
+                lastName: "Ronaldo",
+                birthDate: "1985-02-05",
+                nationality: "Portugal",
+                nationalityFlag: "🇵🇹",
+                position: "Attaquant",
+                currentClub: "Al-Nassr",
+                clubShort: "NAS",
+                league: "",
+                clubs: ["Sporting CP", "Manchester United", "Real Madrid", "Juventus", "Manchester United", "Al-Nassr"],
+                ballonDor: 5,
+                ballonDorYears: [2008, 2013, 2014, 2016, 2017],
+                trophies: 35,
+                goals: 923,
+                assists: 259,
+                tackles: 67,
+                ownGoals: 0,
+                saves: 0,
+                index: 98,
+                photo: "https://img.a.transfermarkt.technology/portrait/header/8198-1694609670.jpg",
+                radarStats: { goals: 99, assists: 82, passes: 75, longPass: 62, shortPass: 78, dribbles: 88, shots: 99 }
+            },
+            {
+                id: 13,
+                firstName: "Kylian",
+                lastName: "Mbappé",
+                birthDate: "1998-12-20",
+                nationality: "France",
+                nationalityFlag: "🇫🇷",
+                position: "Attaquant",
+                currentClub: "Real Madrid",
+                clubShort: "RMA",
+                league: "laliga",
+                clubs: ["AS Monaco", "PSG", "Real Madrid"],
+                ballonDor: 0,
+                ballonDorYears: [],
+                trophies: 21,
+                goals: 312,
+                assists: 128,
+                tackles: 45,
+                ownGoals: 0,
+                saves: 0,
+                index: 94,
+                photo: "https://img.a.transfermarkt.technology/portrait/header/342229-1709282822.jpg",
+                radarStats: { goals: 95, assists: 78, passes: 72, longPass: 55, shortPass: 75, dribbles: 94, shots: 92 }
+            },
+            {
+                id: 14,
+                firstName: "Erling",
+                lastName: "Haaland",
+                birthDate: "2000-07-21",
+                nationality: "Norvège",
+                nationalityFlag: "🇳🇴",
+                position: "Attaquant",
+                currentClub: "Manchester City",
+                clubShort: "MCI",
+                league: "premier",
+                clubs: ["Molde", "RB Salzburg", "Borussia Dortmund", "Manchester City"],
+                ballonDor: 0,
+                ballonDorYears: [],
+                trophies: 14,
+                goals: 267,
+                assists: 52,
+                tackles: 28,
+                ownGoals: 0,
+                saves: 0,
+                index: 93,
+                photo: "https://img.a.transfermarkt.technology/portrait/header/418560-1695029932.jpg",
+                radarStats: { goals: 98, assists: 58, passes: 52, longPass: 35, shortPass: 55, dribbles: 68, shots: 96 }
+            },
+            {
+                id: 15,
+                firstName: "Vinícius",
+                lastName: "Júnior",
+                birthDate: "2000-07-12",
+                nationality: "Brésil",
+                nationalityFlag: "🇧🇷",
+                position: "Attaquant",
+                currentClub: "Real Madrid",
+                clubShort: "RMA",
+                league: "laliga",
+                clubs: ["Flamengo", "Real Madrid"],
+                ballonDor: 0,
+                ballonDorYears: [],
+                trophies: 12,
+                goals: 98,
+                assists: 82,
+                tackles: 34,
+                ownGoals: 1,
+                saves: 0,
+                index: 91,
+                photo: "https://img.a.transfermarkt.technology/portrait/header/371998-1696419178.jpg",
+                radarStats: { goals: 82, assists: 78, passes: 68, longPass: 48, shortPass: 72, dribbles: 97, shots: 78 }
+            },
+            {
+                id: 16,
+                firstName: "Mohamed",
+                lastName: "Salah",
+                birthDate: "1992-06-15",
+                nationality: "Égypte",
+                nationalityFlag: "🇪🇬",
+                position: "Attaquant",
+                currentClub: "Liverpool",
+                clubShort: "LIV",
+                league: "premier",
+                clubs: ["Basel", "Chelsea", "Fiorentina", "AS Roma", "Liverpool"],
+                ballonDor: 0,
+                ballonDorYears: [],
+                trophies: 13,
+                goals: 234,
+                assists: 112,
+                tackles: 56,
+                ownGoals: 0,
+                saves: 0,
+                index: 90,
+                photo: "https://img.a.transfermarkt.technology/portrait/header/148455-1696417850.jpg",
+                radarStats: { goals: 92, assists: 82, passes: 75, longPass: 58, shortPass: 78, dribbles: 88, shots: 90 }
+            },
+            {
+                id: 17,
+                firstName: "Harry",
+                lastName: "Kane",
+                birthDate: "1993-07-28",
+                nationality: "Angleterre",
+                nationalityFlag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+                position: "Attaquant",
+                currentClub: "Bayern Munich",
+                clubShort: "FCB",
+                league: "bundesliga",
+                clubs: ["Tottenham", "Bayern Munich"],
+                ballonDor: 0,
+                ballonDorYears: [],
+                trophies: 2,
+                goals: 352,
+                assists: 98,
+                tackles: 42,
+                ownGoals: 1,
+                saves: 0,
+                index: 91,
+                photo: "https://img.a.transfermarkt.technology/portrait/header/132098-1695737721.jpg",
+                radarStats: { goals: 96, assists: 75, passes: 78, longPass: 68, shortPass: 82, dribbles: 62, shots: 95 }
+            },
+            {
+                id: 18,
+                firstName: "Neymar",
+                lastName: "Jr",
+                birthDate: "1992-02-05",
+                nationality: "Brésil",
+                nationalityFlag: "🇧🇷",
+                position: "Attaquant",
+                currentClub: "Al-Hilal",
+                clubShort: "HIL",
+                league: "",
+                clubs: ["Santos", "FC Barcelone", "PSG", "Al-Hilal"],
+                ballonDor: 0,
+                ballonDorYears: [],
+                trophies: 26,
+                goals: 267,
+                assists: 198,
+                tackles: 38,
+                ownGoals: 0,
+                saves: 0,
+                index: 89,
+                photo: "https://img.a.transfermarkt.technology/portrait/header/68290-1696418856.jpg",
+                radarStats: { goals: 88, assists: 92, passes: 85, longPass: 72, shortPass: 88, dribbles: 96, shots: 85 }
+            },
+            {
+                id: 19,
+                firstName: "Alisson",
+                lastName: "Becker",
+                birthDate: "1992-10-02",
+                nationality: "Brésil",
+                nationalityFlag: "🇧🇷",
+                position: "Gardien",
+                currentClub: "Liverpool",
+                clubShort: "LIV",
+                league: "premier",
+                clubs: ["Internacional", "AS Roma", "Liverpool"],
+                ballonDor: 0,
+                ballonDorYears: [],
+                trophies: 11,
+                goals: 1,
+                assists: 0,
+                tackles: 2,
+                ownGoals: 0,
+                saves: 612,
+                index: 88,
+                photo: "https://img.a.transfermarkt.technology/portrait/header/105470-1696417742.jpg",
+                radarStats: { saves: 78, psxg: 75, passes: 72, longPass: 68, shortPass: 82, aerials: 42, interceptions: 38 }
+            },
+            {
+                id: 20,
+                firstName: "Nico",
+                lastName: "Williams",
+                birthDate: "2002-07-12",
+                nationality: "Espagne",
+                nationalityFlag: "🇪🇸",
+                position: "Attaquant",
+                currentClub: "Athletic Bilbao",
+                clubShort: "ATH",
+                league: "laliga",
+                clubs: ["Athletic Bilbao"],
+                ballonDor: 0,
+                ballonDorYears: [],
+                trophies: 2,
+                goals: 26,
+                assists: 32,
+                tackles: 28,
+                ownGoals: 0,
+                saves: 0,
+                index: 85,
+                photo: "https://img.a.transfermarkt.technology/portrait/header/617187-1719994337.jpg",
+                radarStats: { goals: 72, assists: 78, passes: 71, longPass: 52, shortPass: 75, dribbles: 91, shots: 68 }
+            }
+        ];
+
+        // Global variables
+        let selectedPlayer1 = null;
+        let selectedPlayer2 = null;
+        let radarChart = null;
+        let beeswarmChart = null;
+        let scatterChart = null;
+
+        // Calculate age
+        function calculateAge(birthDate) {
+            const birth = new Date(birthDate);
+            const today = new Date();
+            let age = today.getFullYear() - birth.getFullYear();
+            const monthDiff = today.getMonth() - birth.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        // Search players
+        function searchPlayers(query, leagueFilter) {
+            query = query.toLowerCase().trim();
+            if (query.length < 2) return [];
+
+            return playersDatabase.filter(player => {
+                const matchesQuery = 
+                    player.firstName.toLowerCase().includes(query) ||
+                    player.lastName.toLowerCase().includes(query) ||
+                    player.currentClub.toLowerCase().includes(query) ||
+                    player.nationality.toLowerCase().includes(query) ||
+                    `${player.firstName} ${player.lastName}`.toLowerCase().includes(query);
+
+                const matchesLeague = !leagueFilter || player.league === leagueFilter;
+
+                return matchesQuery && matchesLeague;
+            });
+        }
+
+        // Display search results
+        function displaySearchResults(players, resultContainer, playerNumber) {
+            resultContainer.innerHTML = '';
+            
+            if (players.length === 0) {
+                resultContainer.innerHTML = '<div class="search-result-item" style="justify-content: center; color: var(--text-muted);">Aucun joueur trouvé</div>';
+                resultContainer.classList.add('active');
+                return;
+            }
+
+            players.forEach(player => {
+                const item = document.createElement('div');
+                item.className = 'search-result-item';
+                item.innerHTML = `
+                    <img src="${player.photo}" alt="${player.firstName}" onerror="this.src='https://via.placeholder.com/45?text=${player.firstName[0]}'">
+                    <div class="search-result-info">
+                        <div class="search-result-name">${player.firstName} <strong>${player.lastName}</strong></div>
+                        <div class="search-result-meta">
+                            <span>${player.nationalityFlag}</span>
+                            <span>${player.currentClub}</span>
+                            <span>•</span>
+                            <span>${player.position}</span>
+                        </div>
+                    </div>
+                `;
+                item.addEventListener('click', () => selectPlayer(player, playerNumber));
+                resultContainer.appendChild(item);
+            });
+
+            resultContainer.classList.add('active');
+        }
+
+        // Select player
+        function selectPlayer(player, playerNumber) {
+            const cardClass = playerNumber === 1 ? 'player1' : 'player2';
+            const card = document.getElementById(`card${playerNumber}`);
+            
+            if (playerNumber === 1) {
+                selectedPlayer1 = player;
+                document.getElementById('search1').value = `${player.firstName} ${player.lastName}`;
+                document.getElementById('results1').classList.remove('active');
+                card.classList.remove('empty');
+                renderPlayerCard(player, 'player1-content', 'player1');
+            } else {
+                selectedPlayer2 = player;
+                document.getElementById('search2').value = `${player.firstName} ${player.lastName}`;
+                document.getElementById('results2').classList.remove('active');
+                card.classList.remove('empty');
+                renderPlayerCard(player, 'player2-content', 'player2');
+            }
+
+            if (selectedPlayer1 && selectedPlayer2) {
+                updateComparison();
+                updateRadarChart();
+                document.getElementById('radar-container').classList.add('active');
+            }
+        }
+
+        // Render player card
+        function renderPlayerCard(player, containerId, playerClass) {
+            const container = document.getElementById(containerId);
+            const age = calculateAge(player.birthDate);
+            const isLight = playerClass === 'player1';
+
+            let statsHTML = '';
+            
+            if (player.position === 'Gardien') {
+                statsHTML = `
+                    <div class="stat-item" data-stat="saves">
+                        <div class="stat-icon">🧤</div>
+                        <div class="stat-value">${player.saves}</div>
+                        <div class="stat-label">Arrêts</div>
+                    </div>
+                    <div class="stat-item" data-stat="trophies">
+                        <div class="stat-icon">🏆</div>
+                        <div class="stat-value">${player.trophies}</div>
+                        <div class="stat-label">Trophées</div>
+                    </div>
+                    <div class="stat-item" data-stat="tackles">
+                        <div class="stat-icon">⚔️</div>
+                        <div class="stat-value">${player.tackles}</div>
+                        <div class="stat-label">Tacles</div>
+                    </div>
+                    <div class="stat-item" data-stat="ownGoals" data-reverse="true">
+                        <div class="stat-icon">🔴</div>
+                        <div class="stat-value">${player.ownGoals}</div>
+                        <div class="stat-label">CSC</div>
+                    </div>
+                `;
+            } else if (player.position === 'Défenseur') {
+                statsHTML = `
+                    <div class="stat-item" data-stat="trophies">
+                        <div class="stat-icon">🏆</div>
+                        <div class="stat-value">${player.trophies}</div>
+                        <div class="stat-label">Trophées</div>
+                    </div>
+                    <div class="stat-item" data-stat="assists">
+                        <div class="stat-icon">👟</div>
+                        <div class="stat-value">${player.assists}</div>
+                        <div class="stat-label">Passes D.</div>
+                    </div>
+                    <div class="stat-item" data-stat="tackles">
+                        <div class="stat-icon">⚔️</div>
+                        <div class="stat-value">${player.tackles}</div>
+                        <div class="stat-label">Tacles</div>
+                    </div>
+                    <div class="stat-item" data-stat="ownGoals" data-reverse="true">
+                        <div class="stat-icon">🔴</div>
+                        <div class="stat-value">${player.ownGoals}</div>
+                        <div class="stat-label">CSC</div>
+                    </div>
+                `;
+            } else {
+                statsHTML = `
+                    <div class="stat-item" data-stat="goals">
+                        <div class="stat-icon">⚽</div>
+                        <div class="stat-value">${player.goals}</div>
+                        <div class="stat-label">Buts</div>
+                    </div>
+                    <div class="stat-item" data-stat="assists">
+                        <div class="stat-icon">👟</div>
+                        <div class="stat-value">${player.assists}</div>
+                        <div class="stat-label">Passes D.</div>
+                    </div>
+                    <div class="stat-item" data-stat="trophies">
+                        <div class="stat-icon">🏆</div>
+                        <div class="stat-value">${player.trophies}</div>
+                        <div class="stat-label">Trophées</div>
+                    </div>
+                    <div class="stat-item" data-stat="tackles">
+                        <div class="stat-icon">⚔️</div>
+                        <div class="stat-value">${player.tackles}</div>
+                        <div class="stat-label">Tacles</div>
+                    </div>
+                `;
+            }
+
+            let ballonDorHTML = '';
+            if (player.ballonDor > 0) {
+                ballonDorHTML = `
+                    <div class="stat-item" data-stat="ballonDor">
+                        <div class="stat-icon">🏅</div>
+                        <div class="stat-value">${player.ballonDor}</div>
+                        <div class="stat-label">Ballons d'Or</div>
+                    </div>
+                    <div class="ballon-dor-container">
+                        ${player.ballonDorYears.map(year => `<span class="ballon-year">${year}</span>`).join('')}
+                    </div>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="player-content">
+                    <div class="player-header">
+                        <div class="player-photo-wrapper">
+                            <img src="${player.photo}" alt="${player.firstName} ${player.lastName}" class="player-photo" onerror="this.src='https://via.placeholder.com/120?text=${player.firstName[0]}${player.lastName[0]}'">
+                            <div class="player-flag">${player.nationalityFlag}</div>
+                            <div class="player-club-badge">${player.clubShort}</div>
+                        </div>
+                        <div class="player-info">
+                            <h2 class="player-name">${player.firstName} <strong>${player.lastName}</strong></h2>
+                            <span class="player-position-badge">${player.position}</span>
+                            <div class="index-score">
+                                <span class="index-label">INDEX</span>
+                                <span class="index-value">${player.index}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <div class="section-header">Informations</div>
+                        <div class="glass-card">
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">Naissance</span>
+                                    <span class="info-value">${formatDate(player.birthDate)}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Âge</span>
+                                    <span class="info-value">${age} ans</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Nationalité</span>
+                                    <span class="info-value">${player.nationality}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Club</span>
+                                    <span class="info-value">${player.currentClub}</span>
+                                </div>
+                            </div>
+                            <div class="clubs-list">
+                                ${player.clubs.map(club => `<span class="club-tag">${club}</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <div class="section-header">Statistiques</div>
+                        <div class="stats-grid">
+                            ${statsHTML}
+                        </div>
+                        ${ballonDorHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Update comparison colors
+        function updateComparison() {
+            if (!selectedPlayer1 || !selectedPlayer2) return;
+
+            const statsToCompare = ['goals', 'assists', 'trophies', 'tackles', 'saves', 'ballonDor'];
+
+            statsToCompare.forEach(stat => {
+                const items1 = document.querySelectorAll(`#player1-content [data-stat="${stat}"]`);
+                const items2 = document.querySelectorAll(`#player2-content [data-stat="${stat}"]`);
+
+                const val1 = selectedPlayer1[stat] || 0;
+                const val2 = selectedPlayer2[stat] || 0;
+
+                items1.forEach(item => {
+                    item.classList.remove('better', 'worse', 'equal');
+                    if (val1 > val2) item.classList.add('better');
+                    else if (val1 < val2) item.classList.add('worse');
+                    else item.classList.add('equal');
+                });
+
+                items2.forEach(item => {
+                    item.classList.remove('better', 'worse', 'equal');
+                    if (val2 > val1) item.classList.add('better');
+                    else if (val2 < val1) item.classList.add('worse');
+                    else item.classList.add('equal');
+                });
+            });
+
+            // Own goals (reverse - lower is better)
+            const ownGoalItems1 = document.querySelectorAll(`#player1-content [data-stat="ownGoals"]`);
+            const ownGoalItems2 = document.querySelectorAll(`#player2-content [data-stat="ownGoals"]`);
+
+            const og1 = selectedPlayer1.ownGoals || 0;
+            const og2 = selectedPlayer2.ownGoals || 0;
+
+            ownGoalItems1.forEach(item => {
+                item.classList.remove('better', 'worse', 'equal');
+                if (og1 < og2) item.classList.add('better');
+                else if (og1 > og2) item.classList.add('worse');
+                else item.classList.add('equal');
+            });
+
+            ownGoalItems2.forEach(item => {
+                item.classList.remove('better', 'worse', 'equal');
+                if (og2 < og1) item.classList.add('better');
+                else if (og2 > og1) item.classList.add('worse');
+                else item.classList.add('equal');
+            });
+        }
+
+        // Update radar chart
+        function updateRadarChart() {
+            if (!selectedPlayer1 || !selectedPlayer2) return;
+
+            // Update legend
+            document.getElementById('legend1').textContent = `${selectedPlayer1.firstName} ${selectedPlayer1.lastName}`;
+            document.getElementById('legend2').textContent = `${selectedPlayer2.firstName} ${selectedPlayer2.lastName}`;
+
+            // Determine labels based on position
+            let labels, data1, data2;
+
+            if (selectedPlayer1.position === 'Gardien' || selectedPlayer2.position === 'Gardien') {
+                labels = ['Arrêts%', 'PSxG-GA', 'Passes', 'Long%', 'Court%', 'Aériens', 'Intercept.'];
+                data1 = [
+                    selectedPlayer1.radarStats?.saves || 50,
+                    selectedPlayer1.radarStats?.psxg || 50,
+                    selectedPlayer1.radarStats?.passes || 50,
+                    selectedPlayer1.radarStats?.longPass || 50,
+                    selectedPlayer1.radarStats?.shortPass || 50,
+                    selectedPlayer1.radarStats?.aerials || 50,
+                    selectedPlayer1.radarStats?.interceptions || 50
+                ];
+                data2 = [
+                    selectedPlayer2.radarStats?.saves || 50,
+                    selectedPlayer2.radarStats?.psxg || 50,
+                    selectedPlayer2.radarStats?.passes || 50,
+                    selectedPlayer2.radarStats?.longPass || 50,
+                    selectedPlayer2.radarStats?.shortPass || 50,
+                    selectedPlayer2.radarStats?.aerials || 50,
+                    selectedPlayer2.radarStats?.interceptions || 50
+                ];
+            } else if (selectedPlayer1.position === 'Défenseur' || selectedPlayer2.position === 'Défenseur') {
+                labels = ['Tacles', 'Aériens', 'Passes', 'Long%', 'Court%', 'Intercept.', 'Blocs'];
+                data1 = [
+                    selectedPlayer1.radarStats?.tackles || 50,
+                    selectedPlayer1.radarStats?.aerials || 50,
+                    selectedPlayer1.radarStats?.passes || 50,
+                    selectedPlayer1.radarStats?.longPass || 50,
+                    selectedPlayer1.radarStats?.shortPass || 50,
+                    selectedPlayer1.radarStats?.interceptions || 50,
+                    selectedPlayer1.radarStats?.blocks || 50
+                ];
+                data2 = [
+                    selectedPlayer2.radarStats?.tackles || 50,
+                    selectedPlayer2.radarStats?.aerials || 50,
+                    selectedPlayer2.radarStats?.passes || 50,
+                    selectedPlayer2.radarStats?.longPass || 50,
+                    selectedPlayer2.radarStats?.shortPass || 50,
+                    selectedPlayer2.radarStats?.interceptions || 50,
+                    selectedPlayer2.radarStats?.blocks || 50
+                ];
+            } else {
+                labels = ['Buts', 'Passes D.', 'Passes', 'Long%', 'Court%', 'Dribbles', 'Tirs'];
+                data1 = [
+                    selectedPlayer1.radarStats?.goals || 50,
+                    selectedPlayer1.radarStats?.assists || 50,
+                    selectedPlayer1.radarStats?.passes || 50,
+                    selectedPlayer1.radarStats?.longPass || 50,
+                    selectedPlayer1.radarStats?.shortPass || 50,
+                    selectedPlayer1.radarStats?.dribbles || 50,
+                    selectedPlayer1.radarStats?.shots || 50
+                ];
+                data2 = [
+                    selectedPlayer2.radarStats?.goals || 50,
+                    selectedPlayer2.radarStats?.assists || 50,
+                    selectedPlayer2.radarStats?.passes || 50,
+                    selectedPlayer2.radarStats?.longPass || 50,
+                    selectedPlayer2.radarStats?.shortPass || 50,
+                    selectedPlayer2.radarStats?.dribbles || 50,
+                    selectedPlayer2.radarStats?.shots || 50
+                ];
+            }
+
+            // Update table
+            document.getElementById('table-headers').innerHTML = `<th>Joueur</th>${labels.map(l => `<th>${l}</th>`).join('')}`;
+            document.getElementById('table-body').innerHTML = `
+                <tr class="player1-row">
+                    <td>${selectedPlayer1.lastName}</td>
+                    ${data1.map(val => `<td>${val}</td>`).join('')}
+                </tr>
+                <tr class="player2-row">
+                    <td>${selectedPlayer2.lastName}</td>
+                    ${data2.map(val => `<td>${val}</td>`).join('')}
+                </tr>
+            `;
+
+            // Create/Update radar chart
+            const ctx = document.getElementById('radarChart').getContext('2d');
+
+            if (radarChart) {
+                radarChart.destroy();
+            }
+
+            radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: selectedPlayer1.lastName,
+                            data: data1,
+                            backgroundColor: 'rgba(232, 245, 74, 0.3)',
+                            borderColor: '#E8F54A',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#E8F54A',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5
+                        },
+                        {
+                            label: selectedPlayer2.lastName,
+                            data: data2,
+                            backgroundColor: 'rgba(74, 123, 245, 0.3)',
+                            borderColor: '#4A7BF5',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#4A7BF5',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20,
+                                color: 'rgba(255, 255, 255, 0.4)',
+                                backdropColor: 'transparent',
+                                font: { size: 10 }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            angleLines: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            pointLabels: {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                font: {
+                                    size: 11,
+                                    family: "'Inter', sans-serif",
+                                    weight: '500'
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(30, 30, 30, 0.95)',
+                            titleFont: { family: "'Inter', sans-serif", size: 13, weight: '600' },
+                            bodyFont: { family: "'Inter', sans-serif", size: 12 },
+                            padding: 12,
+                            cornerRadius: 10,
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1
+                        }
+                    }
+                }
+            });
+
+            // Update additional charts
+            updateBeeswarmChart(data1, data2);
+            updateScatterChart(data1, data2);
+        }
+
+        // Beeswarm chart
+        function updateBeeswarmChart(data1, data2) {
+            const ctx = document.getElementById('beeswarmChart').getContext('2d');
+            
+            if (beeswarmChart) {
+                beeswarmChart.destroy();
+            }
+
+            const avg1 = data1.reduce((a, b) => a + b, 0) / data1.length;
+            const avg2 = data2.reduce((a, b) => a + b, 0) / data2.length;
+
+            beeswarmChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: selectedPlayer1.lastName,
+                            data: data1.map((val, i) => ({ x: val, y: Math.random() * 0.4 + 0.3 })),
+                            backgroundColor: '#E8F54A',
+                            pointRadius: 8
+                        },
+                        {
+                            label: selectedPlayer2.lastName,
+                            data: data2.map((val, i) => ({ x: val, y: Math.random() * 0.4 + 0.3 })),
+                            backgroundColor: '#4A7BF5',
+                            pointRadius: 8
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            min: 0,
+                            max: 100,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { display: false }
+                        },
+                        y: {
+                            min: 0,
+                            max: 1,
+                            grid: { display: false },
+                            ticks: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(30, 30, 30, 0.95)',
+                            padding: 10,
+                            cornerRadius: 8
+                        }
+                    }
+                }
+            });
+        }
+
+        // Scatter chart
+        function updateScatterChart(data1, data2) {
+            const ctx = document.getElementById('scatterChart').getContext('2d');
+            
+            if (scatterChart) {
+                scatterChart.destroy();
+            }
+
+            scatterChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: selectedPlayer1.lastName,
+                            data: [{ x: data1[0], y: data1[1] }],
+                            backgroundColor: '#E8F54A',
+                            pointRadius: 12
+                        },
+                        {
+                            label: selectedPlayer2.lastName,
+                            data: [{ x: data2[0], y: data2[1] }],
+                            backgroundColor: '#4A7BF5',
+                            pointRadius: 12
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            min: 0,
+                            max: 100,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10 } },
+                            title: { display: true, text: 'Offensive', color: 'rgba(255,255,255,0.5)', font: { size: 10 } }
+                        },
+                        y: {
+                            min: 0,
+                            max: 100,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10 } },
+                            title: { display: true, text: 'Creative', color: 'rgba(255,255,255,0.5)', font: { size: 10 } }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(30, 30, 30, 0.95)',
+                            padding: 10,
+                            cornerRadius: 8
+                        }
+                    }
+                }
+            });
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const search1 = document.getElementById('search1');
+            const search2 = document.getElementById('search2');
+            const results1 = document.getElementById('results1');
+            const results2 = document.getElementById('results2');
+            const leagueFilter = document.getElementById('league-filter');
+
+            search1.addEventListener('input', (e) => {
+                const query = e.target.value;
+                const league = leagueFilter.value;
+                if (query.length >= 2) {
+                    const players = searchPlayers(query, league);
+                    displaySearchResults(players, results1, 1);
+                } else {
+                    results1.classList.remove('active');
+                }
+            });
+
+            search2.addEventListener('input', (e) => {
+                const query = e.target.value;
+                const league = leagueFilter.value;
+                if (query.length >= 2) {
+                    const players = searchPlayers(query, league);
+                    displaySearchResults(players, results2, 2);
+                } else {
+                    results2.classList.remove('active');
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.search-container')) {
+                    results1.classList.remove('active');
+                    results2.classList.remove('active');
+                }
+            });
+
+            search1.addEventListener('focus', () => {
+                if (search1.value.length >= 2) {
+                    const players = searchPlayers(search1.value, leagueFilter.value);
+                    displaySearchResults(players, results1, 1);
+                }
+            });
+
+            search2.addEventListener('focus', () => {
+                if (search2.value.length >= 2) {
+                    const players = searchPlayers(search2.value, leagueFilter.value);
+                    displaySearchResults(players, results2, 2);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
